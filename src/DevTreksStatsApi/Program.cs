@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 
-namespace DevTreksStatsApi
+namespace DevTreks.DevTreksStatsApi
 {
     public class Program
     {

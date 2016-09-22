@@ -1,0 +1,31 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:              energyuse   R-squared:                       0.982
+Model:                            OLS   Adj. R-squared:                  0.977
+Method:                 Least Squares   F-statistic:                     189.7
+Date:                Thu, 22 Sep 2016   Prob (F-statistic):           8.00e-07
+Time:                        16:31:41   Log-Likelihood:                -50.865
+No. Observations:                  10   AIC:                             107.7
+Df Residuals:                       7   BIC:                             108.6
+Df Model:                           2                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [95.0% Conf. Int.]
+------------------------------------------------------------------------------
+Intercept  -1216.1439    242.806     -5.009      0.002     -1790.290  -641.998
+housesize1     2.3989      0.246      9.758      0.000         1.818     2.980
+housesize2    -0.0005   5.91e-05     -7.618      0.000        -0.001    -0.000
+==============================================================================
+Omnibus:                        1.129   Durbin-Watson:                   2.079
+Prob(Omnibus):                  0.569   Jarque-Bera (JB):                0.859
+Skew:                          -0.587   Prob(JB):                        0.651
+Kurtosis:                       2.172   Cond. No.                     7.04e+07
+==============================================================================
+
+Warnings:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 7.04e+07. This might indicate that there are
+strong multicollinearity or other numerical problems.
+1628.2414 1501.197 1755.2857
+1886.8218 1730.8096 2042.8341
+1369.6609 1250.3172 1489.0046
