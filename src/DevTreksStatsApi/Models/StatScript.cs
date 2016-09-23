@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DevTreks.DevTreksStatsApi.Helpers;
+using DevTreks.DevTreksStatsApi.Client;
 
 namespace DevTreks.DevTreksStatsApi.Models
 {
@@ -18,6 +20,7 @@ namespace DevTreks.DevTreksStatsApi.Models
         {
             this.Key = string.Empty;
             this.Name = string.Empty;
+            this.DateCompleted = string.Empty;
             this.DataURL = string.Empty;
             this.ScriptURL = string.Empty;
             this.OutputURL = string.Empty;
@@ -34,6 +37,7 @@ namespace DevTreks.DevTreksStatsApi.Models
         {
             this.Key = statScript.Key;
             this.Name = statScript.Name;
+            this.DateCompleted = statScript.DateCompleted;
             this.DataURL = statScript.DataURL;
             this.ScriptURL = statScript.ScriptURL;
             this.OutputURL = statScript.OutputURL;
@@ -49,14 +53,15 @@ namespace DevTreks.DevTreksStatsApi.Models
         public enum STAT_TYPE
         {
             none = 0,
-            r       = 1,
-            py      = 2,
-            aml     = 3
+            r = 1,
+            py = 2,
+            aml = 3
         }
         //first 1 prop set by api
         public string Key { get; set; }
         //these 4 properties are set by client and sent as POCO object
         public string Name { get; set; }
+        public string DateCompleted { get; set; }
         public string DataURL { get; set; }
         public string ScriptURL { get; set; }
         public string OutputURL { get; set; }
@@ -85,5 +90,47 @@ namespace DevTreks.DevTreksStatsApi.Models
             //aml addressed when subalgo 4 is debugged
             return eStatType;
         }
-}
+        public static StatScript GetTestStatScript(IStatScriptRepository StatScriptRep, bool isPyTest)
+        {
+            //used to test the post http (create) controller action in web api
+            //client in DevTreks posts directly to create controller and doesn't use this at all
+            StatScript testStat = new StatScript();
+            int i = 0;
+            foreach (var statscript in StatScriptRep.GetAll())
+            {
+                //first statscript is dep injected into repository with 
+                if (i == 0)
+                {
+                    if (statscript.IsDevelopment)
+                    {
+                        statscript.Key = Guid.NewGuid().ToString();
+                        statscript.Name = "TestGetAll()";
+                        //devtreks has to be installed on localhost and these resources previewed
+                        //MAKE SURE to run DevTreks.exe to start listening to localhost:5000
+                        statscript.DataURL = "http://localhost:5000/resources/network_carbon/resourcepack_526/resource_1771/Regress1.csv";
+                        statscript.OutputURL = "http://localhost:5000/resources/temp/2146500643.out1.csv";
+
+                        if (isPyTest)
+                        {
+                            //pytest
+                            statscript.ScriptURL = "http://localhost:5000/resources/network_carbon/resourcepack_526/resource_1767/PyOLSWeb1.txt";
+                            statscript.StatType = StatScript.STAT_TYPE.py.ToString();
+                        }
+                        else
+                        {
+                            //rtest
+                            statscript.ScriptURL = "http://localhost:5000/resources/network_carbon/resourcepack_526/resource_1765/R1Web.txt";
+                            statscript.StatType = StatScript.STAT_TYPE.r.ToString();
+                        }
+                        
+
+                        statscript.IsComplete = false;
+                        testStat = new StatScript(statscript);
+                    }
+                    break;
+                }
+            }
+            return testStat;
+        }
+    }
 }

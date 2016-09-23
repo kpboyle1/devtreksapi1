@@ -19,7 +19,7 @@
     "DevTreksStatsApi": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://localhost:5000/api/statscript",
+      "launchUrl": "http://localhost:5001/api/statscript",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
