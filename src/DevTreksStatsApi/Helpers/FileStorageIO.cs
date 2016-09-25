@@ -47,7 +47,7 @@ namespace DevTreks.DevTreksStatsApi.Helpers
         public static async Task<string> SaveStringInURL(StatScript statScript,
             string statResult, string dataFilePath)
         {
-            //datafilepath must always be csv, but output can be just text
+            //datafilepath must always be a filesystem csv file, but output can be just text
             string sFilePath = dataFilePath.Replace(".csv", "out.txt");
             string sOutputURL = string.Empty;
             bool bIsSaved = await SaveStringInFilePath(statScript, sFilePath, statResult);
@@ -93,8 +93,15 @@ namespace DevTreks.DevTreksStatsApi.Helpers
         {
             string sURLPath = ChangeScriptExtension(statScript, urlPath);
             string sFileName = GetLastSubString(sURLPath, WEBFILE_PATH_DELIMITER);
-            //the temp folder must be periodically maintained by deleting it
             string sResourcesDir = string.Concat(statScript.DefaultRootFullFilePath, "resources");
+            
+            if (!statScript.DefaultRootFullFilePath.Contains("wwwroot"))
+            {
+                //the release build doesn't include wwwroot in path
+                sResourcesDir = string.Concat(statScript.DefaultRootFullFilePath, 
+                    "wwwroot", FILE_PATH_DELIMITER, "resources");
+            }
+            
             if (!Directory.Exists(sResourcesDir))
             {
                 Directory.CreateDirectory(sResourcesDir);
@@ -140,7 +147,7 @@ namespace DevTreks.DevTreksStatsApi.Helpers
             sTempURL = ConvertPathFileandWeb(statScript, filePath);
             return sTempURL;
         }
-        private static string GetLastSubString(string delimitedString, string delimiter)
+        public static string GetLastSubString(string delimitedString, string delimiter)
         {
             string sSubstring = string.Empty;
             if (delimitedString != string.Empty && delimitedString != null)

@@ -46,7 +46,7 @@ namespace DevTreks.DevTreksStatsApi.Controllers
             //tests only run if statscript.IsDevelopment = true
             //this also runs create test
             //set this to true to test python, false to test R
-            bool bIsPyTest = true;
+            bool bIsPyTest = false;
             StatScript testScript = await StatScriptTests.GetAllTest(StatScriptRep, bIsPyTest);
 
             //MVC automatically serializes the object to JSON and writes the JSON into the body of the response message. The response code for this method is 200, assuming there are no unhandled exceptions. (Unhandled exceptions are translated into 5xx errors.)
@@ -86,8 +86,8 @@ namespace DevTreks.DevTreksStatsApi.Controllers
             //adds a new guid to item.Key and stores in repository dictionary in memory
             StatScriptRep.Add(item);
 
-            //this is initialized using the GetAll action
-            StatScript testScript = await StatScriptTests.CreateTest(StatScriptRep);
+            //this is initialized using the GetAll action during tests
+            bool bIsSuccess = await ExecuteScript.CreateStatScript(StatScriptRep, item);
             
             //devtreks client retrieves the url to the statscript object 
             //and consumes item.OutputURL blob holding the stat results string
@@ -98,7 +98,7 @@ namespace DevTreks.DevTreksStatsApi.Controllers
             //the GetById method created the "GetStatScript" named route:
             return CreatedAtRoute("GetStatScript", new { id = item.Key }, item);
             //use the Location header URI to access the resource just created. 
-            //the bloib path to the output.csv holding stat results is in the new item response
+            //item.OutputDataURL holds the statistical results
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] StatScript item)

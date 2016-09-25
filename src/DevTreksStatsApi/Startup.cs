@@ -48,9 +48,10 @@ namespace DevTreks.DevTreksStatsApi
                 , Configuration["Site:PyExecutable"]
                 , Configuration["Site:RExecutable"]
                 , DefaultRootFullFilePath
-                , Configuration["Debug:DefaultRootWebStoragePath"]
+                , Configuration["Release:DefaultRootWebStoragePath"]
                 , bIsDevelopment));
         }
+        
         public void ConfigureProductionServices(IServiceCollection services)
         {
             bool bIsDevelopment = false;
@@ -65,7 +66,7 @@ namespace DevTreks.DevTreksStatsApi
                 , Configuration["Site:PyExecutable"]
                 , Configuration["Site:RExecutable"]
                 , DefaultRootFullFilePath
-                , Configuration["Debug:DefaultRootWebStoragePath"]
+                , Configuration["Release:DefaultRootWebStoragePath"]
                 , bIsDevelopment));
         }
 

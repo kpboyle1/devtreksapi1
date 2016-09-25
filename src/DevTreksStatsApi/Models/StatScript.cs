@@ -29,6 +29,7 @@ namespace DevTreks.DevTreksStatsApi.Models
             this.PyExecutablePath = string.Empty;
             this.DefaultRootFullFilePath = string.Empty;
             this.DefaultRootWebStoragePath = string.Empty;
+            this.StatisticalResult = string.Empty;
             this.IsComplete = false;
             this.IsDevelopment = false;
             this.ErrorMessage = string.Empty;
@@ -46,6 +47,7 @@ namespace DevTreks.DevTreksStatsApi.Models
             this.PyExecutablePath = statScript.PyExecutablePath;
             this.DefaultRootFullFilePath = statScript.DefaultRootFullFilePath;
             this.DefaultRootWebStoragePath = statScript.DefaultRootWebStoragePath;
+            this.StatisticalResult = statScript.StatisticalResult;
             this.IsComplete = statScript.IsComplete;
             this.IsDevelopment = statScript.IsDevelopment;
             this.ErrorMessage = statScript.ErrorMessage;
@@ -72,6 +74,7 @@ namespace DevTreks.DevTreksStatsApi.Models
         public string PyExecutablePath { get; set; }
         public string DefaultRootFullFilePath { get; set; }
         public string DefaultRootWebStoragePath { get; set; }
+        public string StatisticalResult { get; set; }
         //set by api
         public bool IsComplete { get; set; }
         public bool IsDevelopment { get; set; }
@@ -90,7 +93,26 @@ namespace DevTreks.DevTreksStatsApi.Models
             //aml addressed when subalgo 4 is debugged
             return eStatType;
         }
-        public static StatScript GetTestStatScript(IStatScriptRepository StatScriptRep, bool isPyTest)
+        public static void FillInProductionStatScript(IStatScriptRepository StatScriptRep,
+            StatScript item)
+        {
+            int i = 0;
+            foreach (var statscript in StatScriptRep.GetAll())
+            {
+                if (i == 0)
+                {
+                    //repository constructor adds a statscript by default 
+                    //which includes host scriptexecutable paths and isdevelopment property
+                    item.RExecutablePath = statscript.RExecutablePath;
+                    item.PyExecutablePath = statscript.PyExecutablePath;
+                    item.DefaultRootFullFilePath = statscript.DefaultRootFullFilePath;
+                    item.DefaultRootWebStoragePath = statscript.DefaultRootWebStoragePath;
+                    item.IsDevelopment = statscript.IsDevelopment;
+                    break;
+                }
+            }
+        }
+        public static StatScript FillInDebugStatScript(IStatScriptRepository StatScriptRep, bool isPyTest)
         {
             //used to test the post http (create) controller action in web api
             //client in DevTreks posts directly to create controller and doesn't use this at all
@@ -106,9 +128,10 @@ namespace DevTreks.DevTreksStatsApi.Models
                         statscript.Key = Guid.NewGuid().ToString();
                         statscript.Name = "TestGetAll()";
                         //devtreks has to be installed on localhost and these resources previewed
+                        statscript.DataURL = "https://devtreks1.blob.core.windows.net/resources/network_carbon/resourcepack_1534/resource_7969/Regress1.csv";
                         //MAKE SURE to run DevTreks.exe to start listening to localhost:5000
-                        statscript.DataURL = "http://localhost:5000/resources/network_carbon/resourcepack_526/resource_1771/Regress1.csv";
-                        statscript.OutputURL = "http://localhost:5000/resources/temp/2146500643.out1.csv";
+                        //statscript.DataURL = "http://localhost:5000/resources/network_carbon/resourcepack_526/resource_1771/Regress1.csv";
+                        statscript.OutputURL = string.Empty;
 
                         if (isPyTest)
                         {
@@ -119,7 +142,8 @@ namespace DevTreks.DevTreksStatsApi.Models
                         else
                         {
                             //rtest
-                            statscript.ScriptURL = "http://localhost:5000/resources/network_carbon/resourcepack_526/resource_1765/R1Web.txt";
+                            statscript.ScriptURL = "https://devtreks1.blob.core.windows.net/resources/network_carbon/resourcepack_1534/resource_7963/R1Web.txt";
+                            //statscript.ScriptURL = "http://localhost:5000/resources/network_carbon/resourcepack_526/resource_1765/R1Web.txt";
                             statscript.StatType = StatScript.STAT_TYPE.r.ToString();
                         }
                         

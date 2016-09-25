@@ -18,6 +18,22 @@ namespace DevTreks.DevTreksStatsApi.Helpers
     ///</summary>
     public class ExecuteScript
     {
+        public static async Task<bool> CreateStatScript(IStatScriptRepository StatScriptRep,
+            StatScript item)
+        {
+
+            bool bIsSuccess = false;
+            StatScript.FillInProductionStatScript(StatScriptRep, item);
+            if (item.IsDevelopment)
+            {
+                bIsSuccess = await ExecuteScript.RunScript(item);
+            }
+            else
+            {
+                bIsSuccess = await ExecuteScript.RunScript(item);
+            }
+            return bIsSuccess;
+        }
         public static async Task<bool> RunScript(StatScript statScript)
         {
             StringBuilder sb = new StringBuilder();
@@ -41,22 +57,25 @@ namespace DevTreks.DevTreksStatsApi.Helpers
             {
                 sScriptExecutable = statScript.RExecutablePath;
             }
-            ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = sScriptExecutable;
-            start.RedirectStandardOutput = true;
-            start.UseShellExecute = false;
-
-            //task.when.all this
-            string sDataURLFilePath = await FileStorageIO.SaveURLInTempFile(statScript, statScript.DataURL);
-            string sScriptURLFilePath = await FileStorageIO.SaveURLInTempFile(statScript, 
-                statScript.ScriptURL, sDataURLFilePath);
-            //init url where stat results held
-            statScript.OutputURL = string.Empty;
-             
-            start.Arguments = string.Format("{0} {1}", sScriptURLFilePath, sDataURLFilePath);
-            start.CreateNoWindow = true;
+            string sDataURLFilePath = string.Empty;
+            string sScriptURLFilePath = string.Empty;
             try
             {
+                ProcessStartInfo start = new ProcessStartInfo();
+                start.FileName = sScriptExecutable;
+                start.RedirectStandardOutput = true;
+                start.UseShellExecute = false;
+
+                //task.when.all this
+                sDataURLFilePath = await FileStorageIO.SaveURLInTempFile(statScript, statScript.DataURL);
+                sScriptURLFilePath = await FileStorageIO.SaveURLInTempFile(statScript,
+                    statScript.ScriptURL, sDataURLFilePath);
+                //init url where stat results held
+                statScript.OutputURL = string.Empty;
+
+                start.Arguments = string.Format("{0} {1}", sScriptURLFilePath, sDataURLFilePath);
+                start.CreateNoWindow = true;
+
                 //the scripts are run sync
                 using (Process process = Process.Start(start))
                 {
@@ -67,20 +86,25 @@ namespace DevTreks.DevTreksStatsApi.Helpers
 
                     process.WaitForExit();
                 }
+                //this is how client accesses results 
+                //api only returns json statscript and can't access wwwroot except through api
+                statScript.StatisticalResult = sb.ToString();
+                //result is added to temp file storage and path is converted to url for auditing
+                //the url can't be directly accessed but the file path can be found
+                statScript.OutputURL
+                    = await FileStorageIO.SaveStringInURL(statScript, 
+                    statScript.StatisticalResult, sDataURLFilePath);
+                if (!string.IsNullOrEmpty(statScript.StatisticalResult))
+                {
+                    //fill in completed date -used to delete completed scripts on server
+                    statScript.DateCompleted
+                        = DateTime.Now.Date.ToString("d", CultureInfo.InvariantCulture);
+                    statScript.IsComplete = true;
+                }
             }
-            catch(Exception x)
+            catch (Exception x)
             {
-                statScript.ErrorMessage += x.InnerException.ToString();
-            }
-            //result is added to temp file storage and path is converted to url
-            statScript.OutputURL
-                = await FileStorageIO.SaveStringInURL(statScript, sb.ToString(), sDataURLFilePath);
-            if (!string.IsNullOrEmpty(statScript.OutputURL))
-            {
-                //fill in completed date -used to delete completed scripts on server
-                statScript.DateCompleted 
-                    = DateTime.Now.Date.ToString("d", CultureInfo.InvariantCulture);
-                statScript.IsComplete = true;
+                statScript.ErrorMessage += x.Message;
             }
             return statScript.IsComplete;
         }

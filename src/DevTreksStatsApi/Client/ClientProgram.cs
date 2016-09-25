@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
 using DevTreks.DevTreksStatsApi.Models;
+using DevTreks.DevTreksStatsApi.Helpers;
 
 namespace DevTreks.DevTreksStatsApi.Client
 {
@@ -24,6 +25,7 @@ namespace DevTreks.DevTreksStatsApi.Client
     {
         public static async Task<Uri> ClientCreate(StatScript statScript)
         {
+           
             // HTTP POST example
             HttpClient client = new HttpClient();
 
@@ -31,26 +33,55 @@ namespace DevTreks.DevTreksStatsApi.Client
 
             // Post statscript
             Uri address = new Uri(string.Concat(statScript.DefaultRootWebStoragePath, "api/statscript"));
+            Uri outputURL = new Uri(address.ToString());
+            try
+            {
+                //create controller actionresult says this only returns a url 
+                //to the created statscript referenced in Location Header
+                HttpResponseMessage response =
+                    await client.PostAsync(address,
+                    new StringContent(json, Encoding.UTF8, "application/json"));
+                //can also use .PostAsJson(address, statScript) but requires Microsoft.AspNet.WebApi.Client.5.2.3 package
 
+                // Check that response was successful or throw exception
+                response.EnsureSuccessStatusCode();
 
-            //create controller actionresult says this only returns a url 
-            //to the created statscript referenced in Location Header
+                // the statistical result of running the statscript : the key to the statscript object created
+                //{http://localhost:52958/api/StatScript/2e100e5e-997f-4b84-ac69-91b8add6bad2}
+                outputURL = response.Headers.Location;
+            }
+            catch(Exception ex)
+            {
+                statScript.ErrorMessage = ex.Message;
+            }
+            //expects {http://localhost:52958/api/StatScript/2e100e5e-997f-4b84-ac69-91b8add6bad2}
+            return outputURL;
+        }
+
+        //used for tests
+        public static async Task<StatScript> ClientGetById(StatScript statScript)
+        {
+            StatScript deserializedScript = new StatScript();
+            HttpClient client = new HttpClient();
+            var json = JsonConvert.SerializeObject(statScript);
+
+            Uri address = new Uri(string.Concat(statScript.DefaultRootWebStoragePath,
+                    "api/statscript", FileStorageIO.WEBFILE_PATH_DELIMITER, statScript.Key));
+
             HttpResponseMessage response =
-                await client.PostAsync(address,
-                new StringContent(json, Encoding.UTF8, "application/json"));
-            //can also use .PostAsJson(address, statScript) but requires Microsoft.AspNet.WebApi.Client.5.2.3 package
+                await client.GetAsync(address);
 
             // Check that response was successful or throw exception
             response.EnsureSuccessStatusCode();
 
-            // the statistical result of running the statscript : the key to the statscript object created
-            //{http://localhost:52958/api/StatScript/2e100e5e-997f-4b84-ac69-91b8add6bad2}
-            Uri outputURL = response.Headers.Location;
-            return outputURL;
-
-            ////alternative is to return a response body with string holding the json stat results
-            //string sResponse = await response.Content.ReadAsStringAsync();
-            //return sResponse;
+            //the response body contains the json string result
+            string statResult = JsonConvert.SerializeObject(response);
+            if (!string.IsNullOrEmpty(statResult))
+            {
+                string body = await response.Content.ReadAsStringAsync();
+                deserializedScript = JsonConvert.DeserializeObject<StatScript>(body);
+            }
+            return deserializedScript;
         }
         public static async Task<Uri> ClientUpdate(StatScript statScript)
         {
