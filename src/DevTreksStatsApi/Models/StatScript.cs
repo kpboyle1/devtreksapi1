@@ -93,8 +93,8 @@ namespace DevTreks.DevTreksStatsApi.Models
             //aml addressed when subalgo 4 is debugged
             return eStatType;
         }
-        public static void FillInProductionStatScript(IStatScriptRepository StatScriptRep,
-            StatScript item)
+        public static void FillInRepositoryStatScriptProperties(IStatScriptRepository StatScriptRep,
+            StatScript newStatScript)
         {
             int i = 0;
             foreach (var statscript in StatScriptRep.GetAll())
@@ -103,11 +103,11 @@ namespace DevTreks.DevTreksStatsApi.Models
                 {
                     //repository constructor adds a statscript by default 
                     //which includes host scriptexecutable paths and isdevelopment property
-                    item.RExecutablePath = statscript.RExecutablePath;
-                    item.PyExecutablePath = statscript.PyExecutablePath;
-                    item.DefaultRootFullFilePath = statscript.DefaultRootFullFilePath;
-                    item.DefaultRootWebStoragePath = statscript.DefaultRootWebStoragePath;
-                    item.IsDevelopment = statscript.IsDevelopment;
+                    newStatScript.RExecutablePath = statscript.RExecutablePath;
+                    newStatScript.PyExecutablePath = statscript.PyExecutablePath;
+                    newStatScript.DefaultRootFullFilePath = statscript.DefaultRootFullFilePath;
+                    newStatScript.DefaultRootWebStoragePath = statscript.DefaultRootWebStoragePath;
+                    newStatScript.IsDevelopment = statscript.IsDevelopment;
                     break;
                 }
             }
@@ -136,7 +136,8 @@ namespace DevTreks.DevTreksStatsApi.Models
                         if (isPyTest)
                         {
                             //pytest
-                            statscript.ScriptURL = "http://localhost:5000/resources/network_carbon/resourcepack_526/resource_1767/PyOLSWeb1.txt";
+                            statscript.ScriptURL = "https://devtreks1.blob.core.windows.net/resources/network_carbon/resourcepack_1534/resource_7967/PyOLSWeb1.txt";
+                            //statscript.ScriptURL = */"http://localhost:5000/resources/network_carbon/resourcepack_526/resource_1767/PyOLSWeb1.txt";
                             statscript.StatType = StatScript.STAT_TYPE.py.ToString();
                         }
                         else

@@ -22,7 +22,7 @@ namespace DevTreks.DevTreksStatsApi.Tests
             //only runs when first stat.IsDevelopment = true;
             StatScript testStat = StatScript.FillInDebugStatScript(StatScriptRep, isPyTest);
 
-            //also runs createtest
+            //also runs the Create controller action to test running the stat scripts
             if (testStat.IsDevelopment && (!string.IsNullOrEmpty(testStat.Key)))
             {
                 Uri uri = await ClientProgram.ClientCreate(testStat);

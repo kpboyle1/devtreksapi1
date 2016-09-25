@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Globalization;
+using Newtonsoft.Json;
 using DevTreks.DevTreksStatsApi.Models;
 
 namespace DevTreks.DevTreksStatsApi.Helpers
@@ -18,44 +19,39 @@ namespace DevTreks.DevTreksStatsApi.Helpers
     ///</summary>
     public class ExecuteScript
     {
-        public static async Task<bool> CreateStatScript(IStatScriptRepository StatScriptRep,
-            StatScript item)
+        public static async Task<bool> RunScript(IStatScriptRepository StatScriptRep, 
+            StatScript initStat)
         {
+            //remember: even if the script can't run; still want the error message saved in json output file
 
-            bool bIsSuccess = false;
-            StatScript.FillInProductionStatScript(StatScriptRep, item);
-            if (item.IsDevelopment)
-            {
-                bIsSuccess = await ExecuteScript.RunScript(item);
-            }
-            else
-            {
-                bIsSuccess = await ExecuteScript.RunScript(item);
-            }
-            return bIsSuccess;
-        }
-        public static async Task<bool> RunScript(StatScript statScript)
-        {
+            //item contains the scriptURL and the dataURL
+            bool bHasStatResult = false;
+            //new Stat needs the paths to R and P executable and webRoots that were added 
+            //to StatRepo during Startup.cs
+            StatScript.FillInRepositoryStatScriptProperties(StatScriptRep, initStat);
             StringBuilder sb = new StringBuilder();
-            statScript.IsComplete = false;
+            initStat.IsComplete = false;
 
-            if (string.IsNullOrEmpty(statScript.DataURL) || (!statScript.DataURL.EndsWith(".csv")))
+            if (string.IsNullOrEmpty(initStat.DataURL) || (!initStat.DataURL.EndsWith(".csv")))
             {
-                statScript.ErrorMessage = "The dataset file URL has not been added to the Data URL. The file must be stored in a Resource and use a csv file extension.";
+                initStat.ErrorMessage = "The dataset file URL has not been added to the Data URL. The file must be stored in a Resource and use a csv file extension.";
             }
-            if (string.IsNullOrEmpty(statScript.ScriptURL) || (!statScript.ScriptURL.EndsWith(".txt")))
+            if (string.IsNullOrEmpty(initStat.ScriptURL) || (!initStat.ScriptURL.EndsWith(".txt")))
             {
-                statScript.ErrorMessage += "The script file URL has not been added to the Joint Data.The file must be stored in a Resource and use a txt file extension.";
+                initStat.ErrorMessage += "The script file URL has not been added to the Joint Data.The file must be stored in a Resource and use a txt file extension.";
             }
-
             string sScriptExecutable = string.Empty;
-            if (statScript.StatType == StatScript.STAT_TYPE.py.ToString())
+            if (initStat.StatType == StatScript.STAT_TYPE.py.ToString())
             {
-                sScriptExecutable = statScript.PyExecutablePath;
+                sScriptExecutable = initStat.PyExecutablePath;
             }
             else
             {
-                sScriptExecutable = statScript.RExecutablePath;
+                sScriptExecutable = initStat.RExecutablePath;
+            }
+            if (string.IsNullOrEmpty(sScriptExecutable))
+            {
+                initStat.ErrorMessage += "The file path to the script executable could not be found.";
             }
             string sDataURLFilePath = string.Empty;
             string sScriptURLFilePath = string.Empty;
@@ -67,11 +63,11 @@ namespace DevTreks.DevTreksStatsApi.Helpers
                 start.UseShellExecute = false;
 
                 //task.when.all this
-                sDataURLFilePath = await FileStorageIO.SaveURLInTempFile(statScript, statScript.DataURL);
-                sScriptURLFilePath = await FileStorageIO.SaveURLInTempFile(statScript,
-                    statScript.ScriptURL, sDataURLFilePath);
+                sDataURLFilePath = await FileStorageIO.SaveURLInTempFile(initStat, initStat.DataURL);
+                sScriptURLFilePath = await FileStorageIO.SaveURLInTempFile(initStat,
+                    initStat.ScriptURL, sDataURLFilePath);
                 //init url where stat results held
-                statScript.OutputURL = string.Empty;
+                initStat.OutputURL = string.Empty;
 
                 start.Arguments = string.Format("{0} {1}", sScriptURLFilePath, sDataURLFilePath);
                 start.CreateNoWindow = true;
@@ -86,27 +82,36 @@ namespace DevTreks.DevTreksStatsApi.Helpers
 
                     process.WaitForExit();
                 }
-                //this is how client accesses results 
+                //client accesses results by deserializing Json response body
                 //api only returns json statscript and can't access wwwroot except through api
-                statScript.StatisticalResult = sb.ToString();
-                //result is added to temp file storage and path is converted to url for auditing
-                //the url can't be directly accessed but the file path can be found
-                statScript.OutputURL
-                    = await FileStorageIO.SaveStringInURL(statScript, 
-                    statScript.StatisticalResult, sDataURLFilePath);
-                if (!string.IsNullOrEmpty(statScript.StatisticalResult))
+                initStat.StatisticalResult = FileStorageIO.CleanScriptforResponseBody(sb);
+                if (string.IsNullOrEmpty(initStat.StatisticalResult))
+                {
+                    initStat.ErrorMessage += "The script could not be run. Please double check both the script and the dataset"; 
+                }
+                //initStat is added to temp file storage and path is converted to url for auditing
+                //the url can't be directly accessed but the file path can be found from outputURL
+                var json = JsonConvert.SerializeObject(initStat);
+                bool bHasSaved
+                    = await FileStorageIO.SaveContentInFile(initStat, sDataURLFilePath, json);
+                if (bHasSaved)
                 {
                     //fill in completed date -used to delete completed scripts on server
-                    statScript.DateCompleted
+                    initStat.DateCompleted
                         = DateTime.Now.Date.ToString("d", CultureInfo.InvariantCulture);
-                    statScript.IsComplete = true;
+                    initStat.IsComplete = true;
+                    bHasStatResult = initStat.IsComplete;
+                }
+                else
+                {
+                    initStat.ErrorMessage += "The statistical results could not be saved in file system.";
                 }
             }
             catch (Exception x)
             {
-                statScript.ErrorMessage += x.Message;
+                initStat.ErrorMessage += x.Message;
             }
-            return statScript.IsComplete;
+            return bHasStatResult;
         }
     }
 }

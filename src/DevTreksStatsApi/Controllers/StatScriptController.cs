@@ -46,7 +46,7 @@ namespace DevTreks.DevTreksStatsApi.Controllers
             //tests only run if statscript.IsDevelopment = true
             //this also runs create test
             //set this to true to test python, false to test R
-            bool bIsPyTest = false;
+            bool bIsPyTest = true;
             StatScript testScript = await StatScriptTests.GetAllTest(StatScriptRep, bIsPyTest);
 
             //MVC automatically serializes the object to JSON and writes the JSON into the body of the response message. The response code for this method is 200, assuming there are no unhandled exceptions. (Unhandled exceptions are translated into 5xx errors.)
@@ -74,20 +74,23 @@ namespace DevTreks.DevTreksStatsApi.Controllers
             }
             return new ObjectResult(item);
         }
-
+        //during tests this is initialized using the GetAll action
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] StatScript item)
+        public async Task<IActionResult> Create([FromBody] StatScript initStat)
         {
             //The [FromBody] attribute tells MVC to get the value of the stat script from the body of the HTTP request.
-            if (item == null)
+            //initStat must include the scriptURL and dataURL, but nothing else is required
+            if (initStat == null)
             {
                 return BadRequest();
             }
-            //adds a new guid to item.Key and stores in repository dictionary in memory
-            StatScriptRep.Add(item);
 
-            //this is initialized using the GetAll action during tests
-            bool bIsSuccess = await ExecuteScript.CreateStatScript(StatScriptRep, item);
+            //adds a new guid to item.Key and stores in repository dictionary in memory
+            StatScriptRep.Add(initStat);
+
+            //runs scripts and adds results to initStat.StatisticalResult, saves in file system
+            bool bHasStatResult = await ExecuteScript.RunScript(StatScriptRep, initStat);
+            
             
             //devtreks client retrieves the url to the statscript object 
             //and consumes item.OutputURL blob holding the stat results string
@@ -96,7 +99,7 @@ namespace DevTreks.DevTreksStatsApi.Controllers
             //CreateAtRoute also adds a Location header to the response. 
             //The Location header specifies the URI of the newly created to-do item. See 10.2.2 201 Created.
             //the GetById method created the "GetStatScript" named route:
-            return CreatedAtRoute("GetStatScript", new { id = item.Key }, item);
+            return CreatedAtRoute("GetStatScript", new { id = initStat.Key }, initStat);
             //use the Location header URI to access the resource just created. 
             //item.OutputDataURL holds the statistical results
         }

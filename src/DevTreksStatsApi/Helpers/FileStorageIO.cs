@@ -20,6 +20,8 @@ namespace DevTreks.DevTreksStatsApi.Helpers
         public static char[] FILE_PATH_DELIMITERS = FILE_PATH_DELIMITER.ToCharArray();
         public const string WEBFILE_PATH_DELIMITER = "/";
         public static char[] WEBFILE_PATH_DELIMITERS = new char[] { '/' };
+        public const string DOUBLEQUOTE = "\"";
+
         public static async Task<string> SaveURLInTempFile(StatScript statScript,
             string url)
         {
@@ -44,17 +46,7 @@ namespace DevTreks.DevTreksStatsApi.Helpers
             bool bIsSaved = await SaveStringInFilePath(statScript, sTempFilePath, sURLContent);
             return sTempFilePath;
         }
-        public static async Task<string> SaveStringInURL(StatScript statScript,
-            string statResult, string dataFilePath)
-        {
-            //datafilepath must always be a filesystem csv file, but output can be just text
-            string sFilePath = dataFilePath.Replace(".csv", "out.txt");
-            string sOutputURL = string.Empty;
-            bool bIsSaved = await SaveStringInFilePath(statScript, sFilePath, statResult);
-            //convert the filepath to a url
-            sOutputURL = GetURLFromFilePath(statScript, sFilePath);
-            return sOutputURL;
-        }
+       
         private static async Task<string> ReadTextAsync(string dataURL)
         {
             string sContent = string.Empty;
@@ -72,7 +64,17 @@ namespace DevTreks.DevTreksStatsApi.Helpers
             }
             return sContent;
         }
-
+        public static async Task<bool> SaveContentInFile(StatScript statScript, 
+            string dataFilePath, string content)
+        {
+            bool bHasSaved = false;
+            //datafilepath must always be a filesystem csv file, but output can be just text
+            string sFilePath = dataFilePath.Replace(".csv", "out.txt");
+            bool bIsSaved = await SaveStringInFilePath(statScript, sFilePath, content);
+            //convert the filepath to a url for auditing and retrieval
+            statScript.OutputURL = GetURLFromFilePath(statScript, sFilePath);
+            return bHasSaved;
+        }
         private static async Task<bool> SaveStringInFilePath(StatScript statScript,
             string filePath, string content)
         {
@@ -188,6 +190,12 @@ namespace DevTreks.DevTreksStatsApi.Helpers
                 }
             }
             return sConvertedPath;
+        }
+        public static string CleanScriptforResponseBody(StringBuilder sb)
+        {
+            //clean anything that interferes with a string response
+            string sCleanScript = sb.ToString().Replace(FileStorageIO.DOUBLEQUOTE, string.Empty);
+            return sCleanScript;
         }
 
     }

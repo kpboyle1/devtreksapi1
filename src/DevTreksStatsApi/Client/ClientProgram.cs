@@ -55,6 +55,7 @@ namespace DevTreks.DevTreksStatsApi.Client
                 statScript.ErrorMessage = ex.Message;
             }
             //expects {http://localhost:52958/api/StatScript/2e100e5e-997f-4b84-ac69-91b8add6bad2}
+            //the key is used to run GetById and returns the Json statscript in response body
             return outputURL;
         }
 
@@ -97,9 +98,7 @@ namespace DevTreks.DevTreksStatsApi.Client
             HttpResponseMessage response =
                 await client.PutAsync(address,
                 new StringContent(json, Encoding.UTF8, "application/json"));
-
-            //requires Microsoft.AspNet.WebApi.Client.5.2.3 package
-            //HttpResponseMessage response = await client.PutAsJsonAsync(address, statScript);
+            
 
             Uri outputURL = response.Headers.Location;
             return outputURL;
@@ -114,9 +113,7 @@ namespace DevTreks.DevTreksStatsApi.Client
 
             HttpResponseMessage response =
                 await client.DeleteAsync(address);
-
-            //requires Microsoft.AspNet.WebApi.Client.5.2.3 package
-            //HttpResponseMessage response = await client.PutAsJsonAsync(address, statScript);
+            
 
             Uri outputURL = response.Headers.Location;
             return outputURL;
