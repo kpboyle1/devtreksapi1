@@ -95,13 +95,27 @@ namespace DevTreks.DevTreksStatsApi.Helpers
         {
             string sURLPath = ChangeScriptExtension(statScript, urlPath);
             string sFileName = GetLastSubString(sURLPath, WEBFILE_PATH_DELIMITER);
+
+           
             string sResourcesDir = string.Concat(statScript.DefaultRootFullFilePath, "resources");
             
             if (!statScript.DefaultRootFullFilePath.Contains("wwwroot"))
             {
+                string sWebRoot = string.Concat(statScript.DefaultRootFullFilePath,
+                    "wwwroot");
+                if (!Directory.Exists(sWebRoot))
+                {
+                    Directory.CreateDirectory(sWebRoot);
+                }
                 //the release build doesn't include wwwroot in path
-                sResourcesDir = string.Concat(statScript.DefaultRootFullFilePath, 
-                    "wwwroot", FILE_PATH_DELIMITER, "resources");
+                sResourcesDir = string.Concat(sWebRoot, FILE_PATH_DELIMITER, "resources");
+            }
+            else
+            {
+                if (!Directory.Exists(statScript.DefaultRootFullFilePath))
+                {
+                    Directory.CreateDirectory(statScript.DefaultRootFullFilePath);
+                }
             }
             
             if (!Directory.Exists(sResourcesDir))

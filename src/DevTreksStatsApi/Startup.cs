@@ -48,7 +48,11 @@ namespace DevTreks.DevTreksStatsApi
                 , Configuration["Site:PyExecutable"]
                 , Configuration["Site:RExecutable"]
                 , DefaultRootFullFilePath
-                , Configuration["Release:DefaultRootWebStoragePath"]
+                , Configuration["DebugPaths:DefaultRootWebStoragePath"]
+                , Configuration["DebugPaths:DefaultWebDomain"]
+                ////tests of localhost:5000 deployed app
+                //, Configuration["ReleasePaths:DefaultRootWebStoragePath"]
+                //, Configuration["ReleasePaths:DefaultWebDomain"]
                 , bIsDevelopment));
         }
         
@@ -66,7 +70,8 @@ namespace DevTreks.DevTreksStatsApi
                 , Configuration["Site:PyExecutable"]
                 , Configuration["Site:RExecutable"]
                 , DefaultRootFullFilePath
-                , Configuration["Release:DefaultRootWebStoragePath"]
+                , Configuration["ReleasePaths:DefaultRootWebStoragePath"]
+                , Configuration["ReleasePaths:DefaultWebDomain"]
                 , bIsDevelopment));
         }
 

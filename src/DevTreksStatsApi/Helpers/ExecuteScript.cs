@@ -77,7 +77,8 @@ namespace DevTreks.DevTreksStatsApi.Helpers
                 {
                     using (StreamReader reader = process.StandardOutput)
                     {
-                        sb.Append(await reader.ReadToEndAsync());
+                        //configure added to ensure results appended to sb
+                        sb.Append(await reader.ReadToEndAsync().ConfigureAwait(false));
                     }
 
                     process.WaitForExit();

@@ -17,7 +17,7 @@ namespace DevTreks.DevTreksStatsApi.Models
         
         public StatScriptRepository(string name, string dataURL, string scriptURL, string outputURL, 
             string pyExecutable, string rExecutable, string defaultRootFullFilePath, 
-            string defaultRootWebStoragePath, bool isDevelopment)
+            string defaultRootWebStoragePath, string defaultWebDomain, bool isDevelopment)
         {
             Add(new StatScript
             {
@@ -29,6 +29,7 @@ namespace DevTreks.DevTreksStatsApi.Models
                 RExecutablePath = rExecutable,
                 DefaultRootFullFilePath = defaultRootFullFilePath,
                 DefaultRootWebStoragePath = defaultRootWebStoragePath,
+                DefaultWebDomain = defaultWebDomain,
                 IsComplete = false,
                 IsDevelopment = isDevelopment
             });

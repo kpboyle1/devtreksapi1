@@ -32,7 +32,7 @@ namespace DevTreks.DevTreksStatsApi.Client
             var json = JsonConvert.SerializeObject(statScript);
 
             // Post statscript
-            Uri address = new Uri(string.Concat(statScript.DefaultRootWebStoragePath, "api/statscript"));
+            Uri address = new Uri(string.Concat(statScript.DefaultWebDomain, "api/statscript"));
             Uri outputURL = new Uri(address.ToString());
             try
             {
@@ -66,7 +66,7 @@ namespace DevTreks.DevTreksStatsApi.Client
             HttpClient client = new HttpClient();
             var json = JsonConvert.SerializeObject(statScript);
 
-            Uri address = new Uri(string.Concat(statScript.DefaultRootWebStoragePath,
+            Uri address = new Uri(string.Concat(statScript.DefaultWebDomain,
                     "api/statscript", FileStorageIO.WEBFILE_PATH_DELIMITER, statScript.Key));
 
             HttpResponseMessage response =
@@ -87,7 +87,7 @@ namespace DevTreks.DevTreksStatsApi.Client
         public static async Task<Uri> ClientUpdate(StatScript statScript)
         {
             // HTTP PUT example
-            Uri address = new Uri(string.Concat(statScript.DefaultRootWebStoragePath,
+            Uri address = new Uri(string.Concat(statScript.DefaultWebDomain,
                "api/statscript", "/", statScript.Key));
             HttpClient client = new HttpClient();
             var json = JsonConvert.SerializeObject(statScript);
@@ -106,7 +106,7 @@ namespace DevTreks.DevTreksStatsApi.Client
         public static async Task<Uri> ClientDelete(StatScript statScript)
         {
             // HTTP DELETE example
-            Uri address = new Uri(string.Concat(statScript.DefaultRootWebStoragePath,
+            Uri address = new Uri(string.Concat(statScript.DefaultWebDomain,
                 "api/statscript", "/", statScript.Key));
             HttpClient client = new HttpClient();
             var json = JsonConvert.SerializeObject(statScript);
