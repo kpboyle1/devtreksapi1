@@ -70,7 +70,7 @@ namespace DevTreks.DevTreksStatsApi.Helpers
             bool bHasSaved = false;
             //datafilepath must always be a filesystem csv file, but output can be just text
             string sFilePath = dataFilePath.Replace(".csv", "out.txt");
-            bool bIsSaved = await SaveStringInFilePath(statScript, sFilePath, content);
+            bHasSaved = await SaveStringInFilePath(statScript, sFilePath, content);
             //convert the filepath to a url for auditing and retrieval
             statScript.OutputURL = GetURLFromFilePath(statScript, sFilePath);
             return bHasSaved;

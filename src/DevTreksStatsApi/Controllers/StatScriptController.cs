@@ -46,7 +46,7 @@ namespace DevTreks.DevTreksStatsApi.Controllers
             //tests only run if statscript.IsDevelopment = true
             //this also runs create test
             //set this to true to test python, false to test R
-            bool bIsPyTest = true;
+            bool bIsPyTest = false;
             StatScript testScript = await StatScriptTests.GetAllTest(StatScriptRep, bIsPyTest);
 
             //MVC automatically serializes the object to JSON and writes the JSON into the body of the response message. The response code for this method is 200, assuming there are no unhandled exceptions. (Unhandled exceptions are translated into 5xx errors.)

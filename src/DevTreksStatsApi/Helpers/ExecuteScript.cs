@@ -40,6 +40,10 @@ namespace DevTreks.DevTreksStatsApi.Helpers
             {
                 initStat.ErrorMessage += "The script file URL has not been added to the Joint Data.The file must be stored in a Resource and use a txt file extension.";
             }
+            if (string.IsNullOrEmpty(initStat.StatType))
+            {
+                initStat.ErrorMessage += "The type of statistical package to run has not been filled in. Please specify r or py.";
+            }
             string sScriptExecutable = string.Empty;
             if (initStat.StatType == StatScript.STAT_TYPE.py.ToString())
             {
@@ -47,9 +51,13 @@ namespace DevTreks.DevTreksStatsApi.Helpers
             }
             else
             {
+                //no harm in filling in again, but client should have sent this
+                initStat.StatType = StatScript.STAT_TYPE.r.ToString();
+                //default is R because it runs faster than Py
                 sScriptExecutable = initStat.RExecutablePath;
             }
-            if (string.IsNullOrEmpty(sScriptExecutable))
+            if (string.IsNullOrEmpty(sScriptExecutable)
+                || (!File.Exists(sScriptExecutable)))
             {
                 initStat.ErrorMessage += "The file path to the script executable could not be found.";
             }
@@ -90,6 +98,13 @@ namespace DevTreks.DevTreksStatsApi.Helpers
                 {
                     initStat.ErrorMessage += "The script could not be run. Please double check both the script and the dataset"; 
                 }
+                else
+                {
+                    //fill in completed date -used to delete completed scripts on server
+                    initStat.DateCompleted
+                        = DateTime.Now.Date.ToString("d", CultureInfo.InvariantCulture);
+                    initStat.IsComplete = true;
+                }
                 //initStat is added to temp file storage and path is converted to url for auditing
                 //the url can't be directly accessed but the file path can be found from outputURL
                 var json = JsonConvert.SerializeObject(initStat);
@@ -97,15 +112,11 @@ namespace DevTreks.DevTreksStatsApi.Helpers
                     = await FileStorageIO.SaveContentInFile(initStat, sDataURLFilePath, json);
                 if (bHasSaved)
                 {
-                    //fill in completed date -used to delete completed scripts on server
-                    initStat.DateCompleted
-                        = DateTime.Now.Date.ToString("d", CultureInfo.InvariantCulture);
-                    initStat.IsComplete = true;
                     bHasStatResult = initStat.IsComplete;
                 }
                 else
                 {
-                    initStat.ErrorMessage += "The statistical results could not be saved in file system.";
+                    initStat.ErrorMessage += "The json results could not be saved in file system.";
                 }
             }
             catch (Exception x)
